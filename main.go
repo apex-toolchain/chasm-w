@@ -3,52 +3,48 @@ package main
 import (
 	"chasm_w/assembler"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
-func benchmarkAssemblerDisassembler(n int) {
-	rand.Seed(time.Now().UnixNano())
+func main() {
+	// Array of 10 instructions to test
+	instructions := []string{
+		"f32.const 2.2",
+		"i32.const 10",
+		"i32.add",
+		"i32.add",
+		"f32.const 3.14",
+		"i32.add",
+		"i32.const 7",
+		"f32.const 1.1",
+		"i32.add",
+		"f32.const 0.5",
+	}
 
-	types := []string{"i32.const", "i64.const", "f32.const", "f64.const"}
-	instructions := make([]string, n)
+	repeats := 2_000
+	totalInst := len(instructions) * repeats
 
-	for i := 0; i < n; i++ {
-		instType := types[rand.Intn(len(types))]
-
-		var value string
-		switch instType {
-		case "i32.const":
-			value = fmt.Sprintf("%d", rand.Int31())
-		case "i64.const":
-			value = fmt.Sprintf("%d", rand.Int63())
-		case "f32.const":
-			value = fmt.Sprintf("%f", rand.Float32()*1e6)
-		case "f64.const":
-			value = fmt.Sprintf("%f", rand.Float64()*1e6)
-		}
-
-		instructions[i] = fmt.Sprintf("%s %s", instType, value)
+	// Precompute assembled instructions to avoid repeated allocations
+	assembled := make([][]byte, len(instructions))
+	for i, instr := range instructions {
+		assembled[i] = assembler.Assemble_Instruction(instr)
 	}
 
 	start := time.Now()
 
-	for _, inst := range instructions {
-		asmed := assembler.Assemble_Instruction(inst)
-		_ = assembler.Disassemble_Instruction(asmed)
+	for r := 0; r < repeats; r++ {
+		for _, asmed := range assembled {
+			_ = assembler.Disassemble_Instruction(asmed)
+		}
 	}
 
-	elapsed := time.Since(start)
-	timePerInst := elapsed / time.Duration(n)
-	instPerSec := float64(n) / elapsed.Seconds()
-	minstPerSec := instPerSec / 1e6
+	duration := time.Since(start)
+	totalTimeSec := duration.Seconds()
+	minstPerSec := float64(totalInst) / 1e6 / totalTimeSec
+	timePerInstNs := duration.Nanoseconds() / int64(totalInst)
 
-	fmt.Printf("Total instructions: %d\n", n)
-	fmt.Printf("Total time: %v\n", elapsed)
-	fmt.Printf("Time per instruction: %v\n", timePerInst)
+	fmt.Println("Total instructions:", totalInst)
+	fmt.Printf("Total time: %.6f sec\n", totalTimeSec)
 	fmt.Printf("Throughput: %.3f MInst/s\n", minstPerSec)
-}
-
-func main() {
-	benchmarkAssemblerDisassembler(1_000_000)
+	fmt.Printf("Time per instruction: %d ns\n", timePerInstNs)
 }

@@ -4,6 +4,7 @@ import (
 	"chasm_w/opcodes"
 	"chasm_w/w_util"
 	"strconv"
+	"strings"
 )
 
 func assemble_const(opcode string, rf []string) []byte {
@@ -45,7 +46,7 @@ func assemble_const(opcode string, rf []string) []byte {
 
 var lkp_b = []int{32, 64}
 
-func disassemble_const(b []byte) []string {
+func disassemble_const(b []byte) string {
 	if len(b) == 0 {
 		panic("empty instruction")
 	}
@@ -79,5 +80,5 @@ func disassemble_const(b []byte) []string {
 		outs = append(outs, strconv.FormatInt(int64(decoded), 10))
 	}
 
-	return outs
+	return strings.Join(outs, " ")
 }

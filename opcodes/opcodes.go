@@ -20,6 +20,8 @@ func Lookup_Op(op string) (byte, error) {
 		return 0x92, nil
 	case "f64.add":
 		return 0xA0, nil
+	case "nop":
+		return 0x1, nil
 	}
 	return 0, fmt.Errorf("unknown operation %s", op)
 }
@@ -42,6 +44,8 @@ func Lookup_Op_Back(op byte) (string, error) {
 		return "f32.add", nil
 	case 0xA0:
 		return "f64.add", nil
+	case 0x1:
+		return "nop", nil
 	}
 	return "", fmt.Errorf("unknown opcode 0x%X", op)
 }
